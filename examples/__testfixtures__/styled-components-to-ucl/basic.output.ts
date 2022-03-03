@@ -8,9 +8,8 @@ export const Basic = Box.withConfig<{
   color: string,
   backgroundColor: string
 }>(p => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
+  alignItems: 'space-between',
+  justifyContent: 'center',
   textAlign: 'left',
   color: p.color,
   backgroundColor: p.backgroundColor

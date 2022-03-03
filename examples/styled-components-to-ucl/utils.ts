@@ -2,75 +2,82 @@ import { JSCodeshift } from 'jscodeshift';
 import * as _ from 'lodash/fp';
 
 const styleColorMap = {
-  'black': 'black',
-}
+  black: 'black',
+};
 
 const primitiveMap = {
-  '$spacing0': '$0',
-  '$spacing1': '$1',
-  '$spacing2': '$2',
-  '$spacing3': '$3',
-  '$spacing4': '$4',
-  '$spacing5': '$5',
-  '$spacing6': '$6',
-  '$spacing7': '$8',
-  '$spacing8': '$10',
-  '$spacing9': '$12',
-  '$spacing10': '$13.5',
-  '$spacing11': '$20'
+  $spacing0: '$0',
+  $spacing1: '$1',
+  $spacing2: '$2',
+  $spacing3: '$3',
+  $spacing4: '$4',
+  $spacing5: '$5',
+  $spacing6: '$6',
+  $spacing7: '$8',
+  $spacing8: '$10',
+  $spacing9: '$12',
+  $spacing10: '$13.5',
+  $spacing11: '$20',
 };
 
 const brandFontMap = {
-  'hero': 'hero',
-  'headerOne': 'headerOne',
-  'headerTwo': 'headerTwo',
-  'headerThree': 'headerThree',
-  'headerFour': 'headerFour',
-  'copyOne': 'copyOne',
-  'copyTwo': 'copyTwo',
-  'formUtility': 'formUtility',
+  hero: 'hero',
+  headerOne: 'headerOne',
+  headerTwo: 'headerTwo',
+  headerThree: 'headerThree',
+  headerFour: 'headerFour',
+  copyOne: 'copyOne',
+  copyTwo: 'copyTwo',
+  formUtility: 'formUtility',
 };
 
-const removeProps = [
-  /^animation/,
-];
+const removeProps = [/^animation/, /^display/];
 
-const unsupportedProps = [
-  /^objectFit$/,
-  /^animation/,
-];
+const unsupportedProps = [/^objectFit$/, /^animation/];
 
-const unsupportedValue = [
-  /^calc/,
-  /^relative$/,
-];
+const unsupportedValue = [/^calc/, /^relative$/];
 
-const _isUnsupported = (test, regex) =>
-  _.some(re => re.test(test), regex);
+const _isUnsupported = (test, regex) => _.some(re => re.test(test), regex);
+
+const _isRemovable = (property: string, value: string) => {
+  if (property === 'position' && value === 'relative') {
+    return true;
+  }
+
+  if (property === 'flexDirection' && value === 'column') {
+    return true;
+  }
+
+  if (property === 'display' && ['none', 'flex'].includes(value)) {
+    return true;
+  }
+
+  return false;
+};
 
 export const isSupported = (property: string, value: string) => {
-
   if (property === 'display' && !['none', 'flex'].includes(value)) {
     return [false, false];
   }
 
+  if (_isRemovable(property, value)) {
+    return [true, true];
+  }
+
   if (_isUnsupported(property, removeProps)) {
     return [false, true];
-
   }
 
   // Broken stuff
   // -----------
   if (_isUnsupported(property, unsupportedProps)) {
     return [false, false];
-
   }
   if (_isUnsupported(value, unsupportedValue)) {
     return [false, false];
-
   }
   return [true, false];
-}
+};
 
 const stylesToValue = (j: JSCodeshift, group, value) => {
   console.log(`group: `, group);
@@ -98,8 +105,7 @@ const valueToType = (j: JSCodeshift, value) => {
       return j.tsBooleanKeyword();
     // throw new Error('valueToType not found: ' + value)
   }
-}
-
+};
 
 interface IMapping {
   component: string;
@@ -108,27 +114,27 @@ interface IMapping {
 }
 
 const elementMap: Record<string, IMapping> = {
-  'div': { component: 'Box', notSupported: true },
-  'span': { component: 'Box' },
-  'section': { component: 'Box' },
-  'h1': { component: 'Header' },
-  'h2': { component: 'Header' },
-  'h3': { component: 'Header' },
-  'h4': { component: 'Header' },
-  'h5': { component: 'Header' },
-  'h6': { component: 'Header' },
-  'p': { component: 'Text' },
-  'label': { component: 'Text', notSupported: 'use InputLabel' },
-  'button': { component: 'Button' },
-  'ul': { component: 'Box', notSupported: 'use ScrollView' },
-  'li': { component: 'Box', notSupported: 'use ScrollView' },
-  'a': { component: 'Box', notSupported: 'use /component/link' },
-  'form': { component: 'Box', notSupported: true },
+  div: { component: 'Box', notSupported: true },
+  span: { component: 'Box' },
+  section: { component: 'Box' },
+  h1: { component: 'Header' },
+  h2: { component: 'Header' },
+  h3: { component: 'Header' },
+  h4: { component: 'Header' },
+  h5: { component: 'Header' },
+  h6: { component: 'Header' },
+  p: { component: 'Text' },
+  label: { component: 'Text', notSupported: 'use InputLabel' },
+  button: { component: 'Button' },
+  ul: { component: 'Box', notSupported: 'use ScrollView' },
+  li: { component: 'Box', notSupported: 'use ScrollView' },
+  a: { component: 'Box', notSupported: 'use /component/link' },
+  form: { component: 'Box', notSupported: true },
   // 'svg': { component: 'Icon' },
-  'fieldset': { component: 'Box', notSupported: true },
-  'input': { component: 'Box', notSupported: true },
-  'legend': { component: 'Box', notSupported: true },
-  'hr': { component: 'Divider' },
+  fieldset: { component: 'Box', notSupported: true },
+  input: { component: 'Box', notSupported: true },
+  legend: { component: 'Box', notSupported: true },
+  hr: { component: 'Divider' },
 };
 
 export const getElementMapping = (el: string) => {
@@ -138,7 +144,7 @@ export const getElementMapping = (el: string) => {
     throw new Error('element not found: ' + el);
   }
   return found;
-}
+};
 
 export const parseExpression = (j: JSCodeshift, expression) => {
   const finalVars = [];
@@ -152,14 +158,14 @@ export const parseExpression = (j: JSCodeshift, expression) => {
     // Local variables
     if (expression?.object?.type === 'Identifier') {
       if (expression.object.name === 'primitive') {
-        const foundPrimitive = primitiveMap[expression.property.name]
+        const foundPrimitive = primitiveMap[expression.property.name];
         if (foundPrimitive) {
           v = j.stringLiteral(foundPrimitive);
           includeTypes = false;
         }
       }
       if (expression.object.name === 'brandFont') {
-        const foundPrimitive = brandFontMap[expression.property.name]
+        const foundPrimitive = brandFontMap[expression.property.name];
         if (foundPrimitive) {
           v = j.stringLiteral(foundPrimitive);
           includeTypes = false;
@@ -179,15 +185,17 @@ export const parseExpression = (j: JSCodeshift, expression) => {
     const propertyName = expression?.property?.name;
     let vars;
     if (propertyName && includeTypes) {
-      vars = [{
-        name: propertyName,
-        type: valueToType(j, propertyName),
-      }];
+      vars = [
+        {
+          name: propertyName,
+          type: valueToType(j, propertyName),
+        },
+      ];
     }
     return {
       value: v,
       vars,
-    }
+    };
   }
   if (expression.type === 'ArrowFunctionExpression') {
     // And change `props` to `p`
@@ -200,7 +208,7 @@ export const parseExpression = (j: JSCodeshift, expression) => {
     return {
       value: expression.body,
       vars,
-    }
+    };
   }
 
   if (expression.type === 'ConditionalExpression') {
@@ -208,22 +216,18 @@ export const parseExpression = (j: JSCodeshift, expression) => {
     expression.consequent = consequent.value;
     const alternate = parseExpression(j, expression.alternate);
     expression.alternate = alternate.value;
-    const conditionalVar = expression?.test?.property?.name
+    const conditionalVar = expression?.test?.property?.name;
     let localVars = [];
     if (conditionalVar) {
       localVars.push({
         name: conditionalVar,
         type: j.tsBooleanKeyword(),
-      })
+      });
     }
     return {
       value: expression,
-      vars: [
-        ...(localVars || []),
-        ...(consequent.vars || []),
-        ...(alternate.vars || []),
-      ]
-    }
+      vars: [...(localVars || []), ...(consequent.vars || []), ...(alternate.vars || [])],
+    };
   }
 
   if (expression.type === 'CallExpression') {
@@ -234,19 +238,21 @@ export const parseExpression = (j: JSCodeshift, expression) => {
       return {
         value: j.stringLiteral('__legacyToken.' + expression.arguments[0]?.value),
         vars: null,
-      }
+      };
     } else {
       // on all other call expressions we want the name of the property so that we can
       // add it to the types
       const propertyName = expression?.property?.name;
       return {
         value: expression,
-        vars: [{
-          name: propertyName,
-          type: valueToType(j, propertyName),
-        }],
-      }
+        vars: [
+          {
+            name: propertyName,
+            type: valueToType(j, propertyName),
+          },
+        ],
+      };
     }
   }
-  throw new Error('Expression not implemented type: ' + expression.type)
+  throw new Error('Expression not implemented type: ' + expression.type);
 };
