@@ -1,16 +1,7 @@
-import {
-  Collection,
-  FileInfo,
-  JSCodeshift,
-  ObjectMethod,
-  ObjectProperty,
-  Property,
-  SpreadElement,
-  SpreadProperty,
-} from "jscodeshift";
+import { Collection, FileInfo, JSCodeshift } from "jscodeshift";
 import _ from "lodash";
 import { _isRemovable, _isSupported } from "../utils/mappings";
-import { logManualWork, commitManualLogs } from "../../logger";
+import { logManualWork } from "../../logger";
 import { convertObjectProperties } from "./convert-object-properties";
 
 export function transformInlineStyleProps(
@@ -19,6 +10,10 @@ export function transformInlineStyleProps(
   file: FileInfo,
 ) {
   root.findJSXElements().forEach((node) => {
+    const nodeName =
+      node.value.openingElement.name.type === "JSXIdentifier"
+        ? node.value.openingElement.name.name
+        : "";
     const styleAttribute = node.value.openingElement.attributes.find(
       (a) => a.type === "JSXAttribute" && a.name.name === "style",
     );
@@ -31,9 +26,9 @@ export function transformInlineStyleProps(
       ) {
         styleAttribute.value.expression.properties = convertObjectProperties(
           file.path,
+          nodeName,
           j,
           styleAttribute.value.expression.properties,
-          needsFlexRemapping(styleAttribute.value.expression.properties),
         );
         return;
       }
@@ -62,9 +57,9 @@ export function transformInlineStyleProps(
             ) {
               node.value.properties = convertObjectProperties(
                 file.path,
+                nodeName,
                 j,
                 node.value.properties,
-                needsFlexRemapping(node.value.properties),
               );
             }
           }
@@ -91,9 +86,9 @@ export function transformInlineStyleProps(
 
             node.properties = convertObjectProperties(
               file.path,
+              nodeName,
               j,
               node.properties,
-              needsFlexRemapping(node.properties),
             );
           }
         });
@@ -135,33 +130,3 @@ If the \`${objectName}\` variable is a prop coming in from the parent, find all 
     }
   });
 }
-
-// only needs to remap if the node had flex, but did not have a flex direction,
-// meaning that the flex direction is going to be implicitly flipped by switching to react-native
-const needsFlexRemapping = (
-  properties: (
-    | Property
-    | ObjectProperty
-    | SpreadElement
-    | SpreadProperty
-    | ObjectMethod
-  )[],
-) => {
-  const hasFlex = properties.some(
-    (node) =>
-      node.type === "ObjectProperty" &&
-      node.key.type === "Identifier" &&
-      node.key.name === "display" &&
-      node.value.type === "StringLiteral" &&
-      node.value.value === "flex",
-  );
-
-  const hasFlexDirection = properties.some(
-    (node) =>
-      node.type === "ObjectProperty" &&
-      node.key.type === "Identifier" &&
-      node.key.name === "flexDirection",
-  );
-
-  return hasFlex && !hasFlexDirection;
-};

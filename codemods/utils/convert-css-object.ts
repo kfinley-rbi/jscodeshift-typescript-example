@@ -112,10 +112,7 @@ export const convertCssObject = ({
     value = _value;
 
     // if the element is a box we have to next the text properties under _text
-    if (
-      isATextProp(key) &&
-      _.includes(activeElement.to, ["Box", "Button"])
-    ) {
+    if (isATextProp(key) && _.includes(activeElement.to, ["Box", "Button"])) {
       parent = "_text";
     }
 
@@ -163,14 +160,14 @@ export const convertCssObject = ({
   })(_.keys(obj));
 
   // Add the custom properties
-  if (activeElement.attributes) {
-    activeElement.attributes.forEach(x => {
+  if (activeElement?.attributes) {
+    activeElement.attributes.forEach((x) => {
       properties = addProperty(j, properties, x.name, x.value, true, x.comment);
-    })
+    });
   }
 
   // Remove duplicate keys
-  properties = _.uniqBy('key.name')(properties);
+  properties = _.uniqBy("key.name")(properties);
   return {
     properties,
     localVars,
@@ -187,16 +184,15 @@ export const addProperty = (
   comment?: string,
 ) => {
   const prefix = !isSupported ? `// ${TODO_RN_COMMENT}\n// ` : "";
-  const prop = j.property("init", j.identifier(prefix + identifier), j.literal(value));
+  const prop = j.property(
+    "init",
+    j.identifier(prefix + identifier),
+    j.literal(value),
+  );
   if (comment) {
-    prop.comments = [
-      j.commentLine(' ' + comment)
-    ]
+    prop.comments = [j.commentLine(" " + comment)];
   }
-  return [
-    ...properties,
-    prop,
-  ];
+  return [...properties, prop];
 };
 
 export const addProperties = ({

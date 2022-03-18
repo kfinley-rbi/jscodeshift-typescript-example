@@ -7,10 +7,7 @@ function C() {
       paddingX: '$8',
       paddingY: '$4',
       margin: '$13.5',
-      // TODO: RN - Unsupported CSS,
-      // objectFit: 'contain',
-      // TODO: RN - Unsupported CSS,
-      // display: 'block',
-    }}>hi</Box>
+      // TODO: RN - Unsupported Property. objectFit: 'contain',
+   }}>hi</Box>
   );
 }

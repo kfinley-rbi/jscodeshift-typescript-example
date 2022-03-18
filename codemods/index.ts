@@ -14,8 +14,8 @@ export default function transformer(fileInfo: FileInfo, api: API) {
 
   removeComponentLibaryImport(root, j);
 
-  transformInlineStyleProps(root, j, fileInfo);
   transformRenameJSXPrimitives(root, j, fileInfo);
+  transformInlineStyleProps(root, j, fileInfo);
   transformStyledCompoentsToUCL(root, j, fileInfo);
 
   const source = root.toSource({ quote: "single", trailingComma: true });

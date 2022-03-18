@@ -7,7 +7,8 @@ const styles = {
 }
 
 const textStyle = {
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
 }
 
 function C() {
