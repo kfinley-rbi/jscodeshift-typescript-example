@@ -439,7 +439,6 @@ const identifierMapping = {
     }
     const p = String(currentValue).match(numberOrLengthRe);
     if (!p) {
-      console.log(`not > p: `, p, newValue);
       return {
         newValue,
         isSkipable: true,
