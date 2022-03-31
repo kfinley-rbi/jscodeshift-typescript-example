@@ -69,7 +69,7 @@ export const convertCssObject = ({
             if (isRemovable) {
               return;
             }
-            if (!isSupported && !isSkipable) {
+            if (!isSupported) {
               properties = addProperty(j, properties, k, v, isSupported, substitutionMap);
               return;
             }
@@ -149,7 +149,7 @@ export const convertCssObject = ({
     if (isRemovable) {
       return;
     }
-    if (!isSupported && !isSkipable) {
+    if (!isSupported) {
       properties = addProperty(j, properties, key, value, isSupported, substitutionMap);
       return;
     }
